@@ -14,14 +14,13 @@
 
     See STIR/LICENSE.txt for details
 */
-/*! 
+/*!
   \file
   \ingroup buildblock
   \brief  This file declares the class stir::ExamInfo
   \author Kris Thielemans
   \author Nikos Efthimiou
 */
-
 
 #ifndef __stir_ExamInfo_H__
 #define __stir_ExamInfo_H__
@@ -35,7 +34,6 @@
 
 START_NAMESPACE_STIR
 
-
 /*!
   \brief a class for storing information about 1 exam (or scan)
   \ingroup buildblock
@@ -44,36 +42,27 @@ START_NAMESPACE_STIR
   \todo This should be an abtract registered object, in order to serve as a complete
   base function for every input data type.
   */
-class ExamInfo
-{
+class ExamInfo {
 
-public :
-
+public:
   //! Default constructor
   /*! Most fields take their default values (which might be invalid).
      \a start_time_in_secs_since_1970 is set to zero, energy window info to -1, to
      indicate that it is not initialised.
   */
 
-  ExamInfo()
-    : start_time_in_secs_since_1970(0.),
-    low_energy_thres(-1),
-    up_energy_thres(-1)
-    {
-  }
+  ExamInfo() : start_time_in_secs_since_1970(0.), low_energy_thres(-1), up_energy_thres(-1) {}
 
   std::string originating_system;
-  
+
   ImagingModality imaging_modality;
 
   PatientPosition patient_position;
 
   TimeFrameDefinitions time_frame_definitions;
 
-  const TimeFrameDefinitions& get_time_frame_definitions() const
-  { return time_frame_definitions; }
-  TimeFrameDefinitions& get_time_frame_definitions()
-  { return time_frame_definitions; }
+  const TimeFrameDefinitions& get_time_frame_definitions() const { return time_frame_definitions; }
+  TimeFrameDefinitions& get_time_frame_definitions() { return time_frame_definitions; }
 
   double start_time_in_secs_since_1970;
 
@@ -93,33 +82,26 @@ public :
   inline void set_high_energy_thres(float new_val);
   //@}
 
-  inline bool has_energy_information() const
-  {
-    return (low_energy_thres > 0.f)&&(up_energy_thres > 0.f);
-  }
+  inline bool has_energy_information() const { return (low_energy_thres > 0.f) && (up_energy_thres > 0.f); }
 
   //! Standard trick for a 'virtual copy-constructor'
   inline ExamInfo* clone() const;
   //! Like clone() but return a shared_ptr
   inline shared_ptr<ExamInfo> create_shared_clone() const;
 
-  void set_time_frame_definitions(const TimeFrameDefinitions& new_time_frame_definitions)
-    {
-      time_frame_definitions = new_time_frame_definitions;
-    }
+  void set_time_frame_definitions(const TimeFrameDefinitions& new_time_frame_definitions) {
+    time_frame_definitions = new_time_frame_definitions;
+  }
 
   //! Clone and create shared_ptr of the copy
-  shared_ptr<ExamInfo> create_shared_clone()
-  {
-      return shared_ptr<ExamInfo>(new ExamInfo(*this));
-  }
+  shared_ptr<ExamInfo> create_shared_clone() { return shared_ptr<ExamInfo>(new ExamInfo(*this)); }
 
   //! Return a string with info on parameters
   /*! the returned string is not intended for parsing. */
   std::string parameter_info() const;
 
-  private:
-     //!
+private:
+  //!
   //! \brief low_energy_thres
   //! \author Nikos Efthimiou
   //! \details This is the value of low energy threshold of the energy window.

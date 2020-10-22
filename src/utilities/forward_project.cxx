@@ -54,75 +54,63 @@
 #include <iostream>
 #include <stdlib.h>
 
-static void print_usage_and_exit()
-{
-  std::cerr<<"\nUsage:\nforward_project output-filename image_to_forward_project template_proj_data_file [forwardprojector-parfile ]\n";
-  std::cerr<<"The default projector uses the ray-tracing matrix.\n\n";
-  std::cerr<<"Example parameter file:\n\n"
-	   <<"Forward Projector parameters:=\n"
-	   <<"   type := Matrix\n"
-	   <<"   Forward projector Using Matrix Parameters :=\n"
-	   <<"      Matrix type := Ray Tracing\n"
-	   <<"         Ray tracing matrix parameters :=\n"
-	   <<"         End Ray tracing matrix parameters :=\n"
-	   <<"      End Forward Projector Using Matrix Parameters :=\n"
-	   <<"End:=\n";
+static void
+print_usage_and_exit() {
+  std::cerr << "\nUsage:\nforward_project output-filename image_to_forward_project template_proj_data_file "
+               "[forwardprojector-parfile ]\n";
+  std::cerr << "The default projector uses the ray-tracing matrix.\n\n";
+  std::cerr << "Example parameter file:\n\n"
+            << "Forward Projector parameters:=\n"
+            << "   type := Matrix\n"
+            << "   Forward projector Using Matrix Parameters :=\n"
+            << "      Matrix type := Ray Tracing\n"
+            << "         Ray tracing matrix parameters :=\n"
+            << "         End Ray tracing matrix parameters :=\n"
+            << "      End Forward Projector Using Matrix Parameters :=\n"
+            << "End:=\n";
 
   exit(EXIT_FAILURE);
 }
 
-
-int 
-main (int argc, char * argv[])
-{
+int
+main(int argc, char* argv[]) {
   using namespace stir;
 
-  if (argc!=4 && argc!=5 )
+  if (argc != 4 && argc != 5)
     print_usage_and_exit();
-  
+
   const std::string output_filename = argv[1];
 
-  shared_ptr <DiscretisedDensity<3,float> > 
-    image_density_sptr(read_from_file<DiscretisedDensity<3,float> >(argv[2]));
+  shared_ptr<DiscretisedDensity<3, float>> image_density_sptr(read_from_file<DiscretisedDensity<3, float>>(argv[2]));
 
-  shared_ptr<ProjData> template_proj_data_sptr = 
-    ProjData::read_from_file(argv[3]);
+  shared_ptr<ProjData> template_proj_data_sptr = ProjData::read_from_file(argv[3]);
 
   if (image_density_sptr->get_exam_info().imaging_modality.is_unknown() &&
-      template_proj_data_sptr->get_exam_info().imaging_modality.is_known())
-    {
-      ExamInfo exam_info(image_density_sptr->get_exam_info());
-      exam_info.imaging_modality = template_proj_data_sptr->get_exam_info().imaging_modality;
-      image_density_sptr->set_exam_info(exam_info);
-    }
-  else if (image_density_sptr->get_exam_info().imaging_modality !=
-      template_proj_data_sptr->get_exam_info().imaging_modality)
+      template_proj_data_sptr->get_exam_info().imaging_modality.is_known()) {
+    ExamInfo exam_info(image_density_sptr->get_exam_info());
+    exam_info.imaging_modality = template_proj_data_sptr->get_exam_info().imaging_modality;
+    image_density_sptr->set_exam_info(exam_info);
+  } else if (image_density_sptr->get_exam_info().imaging_modality != template_proj_data_sptr->get_exam_info().imaging_modality)
     error("forward_project: Imaging modality should be the same for the image and the projection data");
 
   shared_ptr<ForwardProjectorByBin> forw_projector_sptr;
-  if (argc>=5)
-    {
-      KeyParser parser;
-      parser.add_start_key("Forward Projector parameters");
-      parser.add_parsing_key("type", &forw_projector_sptr);
-      parser.add_stop_key("END"); 
-      parser.parse(argv[4]);
-    }
-  else
-    {
-      shared_ptr<ProjMatrixByBin> PM(new  ProjMatrixByBinUsingRayTracing());
-      forw_projector_sptr.reset(new ForwardProjectorByBinUsingProjMatrixByBin(PM)); 
-    }
+  if (argc >= 5) {
+    KeyParser parser;
+    parser.add_start_key("Forward Projector parameters");
+    parser.add_parsing_key("type", &forw_projector_sptr);
+    parser.add_stop_key("END");
+    parser.parse(argv[4]);
+  } else {
+    shared_ptr<ProjMatrixByBin> PM(new ProjMatrixByBinUsingRayTracing());
+    forw_projector_sptr.reset(new ForwardProjectorByBinUsingProjMatrixByBin(PM));
+  }
 
-  forw_projector_sptr->set_up(template_proj_data_sptr->get_proj_data_info_sptr()->create_shared_clone(),
-                             image_density_sptr );
+  forw_projector_sptr->set_up(template_proj_data_sptr->get_proj_data_info_sptr()->create_shared_clone(), image_density_sptr);
 
   ProjDataInterfile output_projdata(image_density_sptr->get_exam_info_sptr(),
-                                    template_proj_data_sptr->get_proj_data_info_sptr()->create_shared_clone(),
-                                    output_filename);
-  
+                                    template_proj_data_sptr->get_proj_data_info_sptr()->create_shared_clone(), output_filename);
+
   forw_projector_sptr->forward_project(output_projdata, *image_density_sptr);
-  
+
   return EXIT_SUCCESS;
 }
-
